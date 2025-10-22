@@ -8,6 +8,13 @@ on:
         required: true
         default: 'App Server'
         type: string
+      operation:
+        description: 'Action to perform for the EC2 resource (select "create" or "destroy")'
+        required: true
+        default: 'create'
+        options:
+          - create
+          - destroy
 jobs:
   provision-ec2:
     runs-on: ubuntu-latest
@@ -34,6 +41,14 @@ jobs:
           cd tf-example/
           terraform init
           terraform validate
-          terraform plan 
-          terraform apply -auto-approve
+
+          if [ "${{ github.event.inputs.operation }}" = "destroy" ]; then
+            echo "Running terraform plan (destroy) and terraform destroy..."
+            terraform plan -destroy -out=tfplan_destroy
+            terraform destroy -auto-approve
+          else
+            echo "Running terraform plan and terraform apply..."
+            terraform plan -out=tfplan
+            terraform apply -auto-approve
+          fi
      
