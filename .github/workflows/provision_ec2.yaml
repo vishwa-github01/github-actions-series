@@ -33,11 +33,16 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_wrapper: false
-      - name: Terraform Apply
-        id:   apply
-        env:
-          TF_VAR_ec2_name:  "${{ github.event.inputs.ec2-name }}"
+      - name: Show chosen operation
         run: |
+          echo "EC2 name: ${{ github.event.inputs.ec2-name }}"
+          echo "Operation: ${{ github.event.inputs.operation }}"
+      - name: Terraform action (create or destroy)
+          id: tf-action
+        env:
+          TF_VAR_ec2_name: "${{ github.event.inputs.ec2-name }}"
+        run: |
+          set -euo pipefail
           cd tf-example/
           terraform init
           terraform validate
@@ -51,4 +56,3 @@ jobs:
             terraform plan -out=tfplan
             terraform apply -auto-approve
           fi
-     
