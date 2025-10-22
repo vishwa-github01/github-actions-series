@@ -8,6 +8,13 @@ on:
         required: true
         default: 'App Server'
         type: string
+      operation:
+        description: 'Action to perform for the EC2 resource (select "create" or "destroy")'
+        required: true
+        default: 'create'
+        options:
+          - create
+          - destroy
 jobs:
   provision-ec2:
     runs-on: ubuntu-latest
@@ -26,14 +33,27 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_wrapper: false
-      - name: Terraform Apply
-        id:   apply
+      - name: Show chosen operation
+        run: |
+          echo "EC2 name: ${{ github.event.inputs.ec2-name }}"
+          echo "Operation: ${{ github.event.inputs.operation }}"
+      - name: Terraform action (create or destroy)
+        id:   tf-action
         env:
           TF_VAR_ec2_name:  "${{ github.event.inputs.ec2-name }}"
         run: |
+          set -euo pipefail
           cd tf-example/
           terraform init
           terraform validate
-          terraform plan 
-          terraform apply -auto-approve
+
+          if [ "${{ github.event.inputs.operation }}" = "destroy" ]; then
+            echo "Running terraform plan (destroy) and terraform destroy..."
+            terraform plan -destroy -out=tfplan_destroy
+            terraform destroy -auto-approve
+          else
+            echo "Running terraform plan and terraform apply..."
+            terraform plan -out=tfplan
+            terraform apply -auto-approve
+          fi
      
