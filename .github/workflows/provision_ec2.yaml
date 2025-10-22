@@ -38,7 +38,7 @@ jobs:
           echo "EC2 name: ${{ github.event.inputs.ec2-name }}"
           echo "Operation: ${{ github.event.inputs.operation }}"
       - name: Terraform action (create or destroy)
-          id: tf-action
+        id: tf-action
         env:
           TF_VAR_ec2_name: "${{ github.event.inputs.ec2-name }}"
         run: |
